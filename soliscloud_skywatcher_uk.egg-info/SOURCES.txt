@@ -1,0 +1,8 @@
+README.md
+setup.py
+soliscloud/__init__.py
+soliscloud/soliscloud.py
+soliscloud_skywatcher_uk.egg-info/PKG-INFO
+soliscloud_skywatcher_uk.egg-info/SOURCES.txt
+soliscloud_skywatcher_uk.egg-info/dependency_links.txt
+soliscloud_skywatcher_uk.egg-info/top_level.txt

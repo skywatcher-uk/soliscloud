@@ -1,0 +1,17 @@
+Metadata-Version: 2.1
+Name: soliscloud-skywatcher-uk
+Version: 0.0.1
+Summary: A small package to work with Solis Cloud API
+Home-page: https://github.com/skywatcher-uk/soliscloud
+Author: Skywatcher
+Author-email: integrations@skywatcher.uk
+License: UNKNOWN
+Description: # SolisCloud
+        
+        A small library to work with the Solis Cloud API for some simple
+        data gathering and setting.
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
