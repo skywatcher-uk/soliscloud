@@ -4,7 +4,7 @@ with open("README.md", "r") as f:
     long_description = f.read()
 
 setup(
-    name="soliscloud-skywatcher-uk",
+    name="soliscloud",
     version="0.0.1",
     author="Skywatcher",
     author_email="integrations@skywatcher.uk",

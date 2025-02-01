@@ -1,0 +1,8 @@
+README.md
+setup.py
+soliscloud/__init__.py
+soliscloud/soliscloud.py
+soliscloud.egg-info/PKG-INFO
+soliscloud.egg-info/SOURCES.txt
+soliscloud.egg-info/dependency_links.txt
+soliscloud.egg-info/top_level.txt
