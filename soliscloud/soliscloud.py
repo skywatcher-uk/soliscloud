@@ -18,9 +18,10 @@ class StatusVo():
         self.mppt: int = 0
     
     def _from_json(self, json_data) -> StatusVo:
-        for key, value in json_data.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
+        if json_data:
+            for key, value in json_data.items():
+                if hasattr(self, key):
+                    setattr(self, key, value)
         return self
     
     def _to_json(self) -> dict:
@@ -132,9 +133,10 @@ class SolisStation():
         self.yearEnergyStr: str = ""
 
     def _from_json(self, json_data) -> SolisStation:
-        for key, value in json_data.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
+        if json_data:
+            for key, value in json_data.items():
+                if hasattr(self, key):
+                    setattr(self, key, value)
         return self
     
     def _to_json(self) -> dict:
@@ -152,9 +154,10 @@ class SolisStations():
         self.stations: list[SolisStation] = []
     
     def _from_json(self, json_data) -> SolisStations:
-        for key, value in json_data.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
+        if json_data:
+            for key, value in json_data.items():
+                if hasattr(self, key):
+                    setattr(self, key, value)
         return self
     
     def _to_json(self) -> dict:
@@ -839,9 +842,10 @@ class SolisInverter():
         self.psumStr: str = ''
 
     def _from_json(self, json_data) -> SolisInverter:
-        for key, value in json_data.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
+        if json_data:
+            for key, value in json_data.items():
+                if hasattr(self, key):
+                    setattr(self, key, value)
         return self
     
     def get_charge_discharge_schedules(self) -> ChargeDischargeSchedule:
@@ -863,9 +867,10 @@ class SolisInverters():
         self.inverters: list[SolisInverter]
     
     def _from_json(self, json_data):
-        for key, value in json_data.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
+        if json_data:
+            for key, value in json_data.items():
+                if hasattr(self, key):
+                    setattr(self, key, value)
         return self
     
     def _to_json(self) -> dict:
