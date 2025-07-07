@@ -1,15 +1,12 @@
 from __future__ import annotations
 from requests import Session
-from datetime import datetime, time, date, timezone
+from datetime import datetime, time, date
 from base64 import b64encode
-from typing import Optional, Literal
 import hashlib
 import pytz
 import hmac
 import json
 
-
-EPMFields = Literal["u_ac1","u_ac2","u_ac3","i_ac1","i_ac2","i_ac3","p_ac1","p_ac2","p_ac3","power_factor","fac_meter","p_load","e_total_inverter","e_total_load","e_total_buy","e_total_sell"]
 
 class StatusVo():
     def __init__(self):
@@ -39,7 +36,7 @@ class SolisConnectException(Exception):
 class SolisStation():
     def __init__(self, __parent__: SolisCloud = None):
         self.__parent__: SolisCloud = __parent__
-        self.inverters: Optional[list[SolisInverter]] = None
+        self.inverters: SolisInverters = None
         self.accessTime: int = 0
         self.accessTimeStr: str = ""
         self.addrOrigin: str = ""
@@ -136,225 +133,31 @@ class SolisStation():
         self.yearEnergyStr: str = ""
 
     def _from_json(self, json_data) -> SolisStation:
-        for key, value in json_data.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-        return self
-    
-    def _to_json(self) -> dict:
-        return {key: value for key, value in self.__dict__.items() if not key.startswith("_")}
-    
-    def list_inverters(self) -> list[SolisInverter]:
-        if self.__parent__:
-            self.inverters = self.__parent__.list_inverters(stationId=self.id)
-            return self.inverters
-
-
-class EPMDataDayItem():
-    def __init__(self):
-        self.alarm_count: int = 0
-        self.current_state: int = 0
-        self.datetime: datetime
-        self.e_total_buy: float = 0.0
-        self.e_total_inverter: float = 0.0
-        self.e_total_load: float = 0.0
-        self.e_total_sell: float = 0.0
-        self.fac_meter: float = 0.0
-        self.fault_bit: int = 0
-        self.i_ac1: float = 0.0
-        self.i_ac2: float = 0.0
-        self.i_ac3: float = 0.0
-        self.is_relatime: float = 0.0
-        self.p_ac1: float = 0.0
-        self.p_ac2: float = 0.0
-        self.p_ac3: float = 0.0
-        self.power_factor: int = 0
-        self.u_ac1: float = 0.0
-        self.u_ac2: float = 0.0
-        self.u_ac3: float = 0.0
-        self.state: int = 0
-    
-    def _to_json_(self) -> dict:
-        json_obj = {}
-        for k, v in self.__dict__.items():
-            if not k.startswith("_"):
-                json_obj[k] = v
-        return json_obj
-    
-    def _from_json_(self, json_obj: dict) -> EPMDataDayItem:
-        if isinstance(json_obj, dict):
-            for k, v in json_obj.items():
-                if hasattr(self, k):
-                    setattr(self, k, v)
-        return self
-
-
-class EPMDataMonthYearItem:
-    def __init__(self):
-        self.backUpEnergy: int = 0
-        self.consumeEnergy: int = 0
-        self.date: int = 0
-        self.datetime: datetime = None
-        self.dateStr: str = ""
-        self.directR: int = 0
-        self.directRKwh: int = 0
-        self.energy: float = 0.0
-        self.energyPec: str = ""
-        self.energyStr: str = ""
-        self.epmBuyEnergy: float = 0.0
-        self.epmLoadEnergy: float = 0.0
-        self.epmSellEnergy: float = 0.0
-        self.errorFlag: int = 0
-        self.generatorEnergy: float = 0.0
-        self.generatorPercent: float = 0.0
-        self.gridBatteryE: int = 0
-        self.gridPurchasedEnergy: int = 0
-        self.gridPurchasedIncome: float = 0.0
-        self.gridPurchasedPercent: float = 0.0
-        self.gridSellEnergy: int = 0
-        self.gridSellIncome: float = 0.0
-        self.homeGridEnergy: int = 0
-        self.id: str = ""
-        self.invAcE: int = 0
-        self.money: float = 0.0
-        self.oneSelfPercent: float = 0.0
-        self.produceEnergy: int = 0
-        self.systemEfficiency: int = 0
-        self.timeZone: int = 0
-        self.toConsumption: int = 0
-        self.toGrid: int = 0
-        self.totalR: int = 0
-        self.totalRKwh: int = 0
-
-    def _from_json_(self, json_obj: dict):
-        for key in json_obj:
-            if hasattr(self, key):
-                setattr(self, key, json_obj[key])
-            if key == "date":
-                self.datetime = datetime.fromtimestamp(int(json_obj[key]) / 1000)
-
-    def _to_json_(self) -> dict:
-        json_obj = {}
-        for k, v in self.__dict__.items():
-            if k == "datetime":
-                continue
-            if not k.startswith("_"):
-                json_obj[k] = v
-        return json_obj
-
-
-class EPMDayData():
-    def __init__(self):
-        self.formatted_data: list[EPMDataDayItem] = []
-
-    def _from_json_(self, json_data: dict) -> EPMDayData:
-        if json_data:
-            keys = [x for x in json_data.keys()]
-            if "data_timestamp" in keys:
-                data_timestamp = json_data.get('data_timestamp', [])
-                keys.remove('data_timestamp')                
-                for x in range(0, len(data_timestamp)):
-                    try:
-                        dt_dt = datetime.fromtimestamp(int(data_timestamp[x])/ 1000)
-                        epm = EPMDataDayItem()
-                        epm.datetime = dt_dt
-                        for key in keys:
-                            if hasattr(epm, key):
-                                setattr(epm, key, json_data[key][x])
-                        self.formatted_data.append(epm)
-                    except Exception as err:
-                        pass
-        return self
-    
-    def convert_to_json(self) -> dict:
-        json_obj = {}
-        for item in self.formatted_data:
-            json_obj[item.datetime.isoformat()] = item._to_json_()
-        return dict(sorted(json_obj.items()))
-
-
-class EPMMonthYearData():
-    def __init__(self):
-        self.formatted_data: list[EPMDataMonthYearItem] = []
-
-    def _from_json_(self, json_data: dict) -> EPMMonthYearData:
-        if json_data:
-            for item in json_data:
-                epm = EPMDataMonthYearItem()
-                epm._from_json_(item)
-                self.formatted_data.append(epm)
-        return self
-    
-    def convert_to_json(self) -> dict:
-        json_obj = {}
-        for item in self.formatted_data:
-            json_obj[item.datetime.isoformat()] = item._to_json_()
-        return dict(sorted(json_obj.items()))
-
-
-class SolisEPM():
-    def __init__(self, parent: SolisCloud):
-        self.__parent__ = parent
-        self.id: str = ""
-        self.sn: str = ""
-        self.collectorId: str = ""
-        self.collectorSn: str = ""
-        self.simFlowState: int = 0
-        self.stationId: int = 0
-        self.userId: str = ""
-        self.stationName: str = ""
-        self.rfSn: str = ""
-        self.tag: str = ""
-        self.state: int = 0
-        self.stateExceptionFlag: int = 0
-        self.dataTimestamp: str = ""
-        self.dataTimestampStr: str = ""
-        self.failSafe: float = 0
-        self.pEpmTotal: float = 0
-        self.pEpmTotalStr: str = ""
-        self.eTotalBuy: float = 0
-        self.eTotalBuyStr: str = ""
-        self.eTotalSell: float = 0
-        self.eTotalSellStr: str = ""
-        self.pLimit: float = 0.0
-        self.timeZone: float = 0.0
-        self.timeZoneStr: str = ""
-        self.timeZoneName: str = ""
-        self.epmMeterSite: int = 0
-        self.idStr: str = ""
-    
-    def get_data_for_day(self, dt: date, timeZone: int, searchinfo: list[EPMFields] = [], **kwargs) -> EPMDayData:
-        data: EPMDayData = self.__parent__.get_epm_data_for_day(sn=self.sn, dt=dt, timeZone=timeZone, searchinfo=searchinfo, **kwargs)
-        return data
-    
-    def get_data_for_month(self, dt: date, **kwargs) -> EPMMonthYearData:
-        data: EPMMonthYearData = self.__parent__.get_epm_data_for_month(sn=self.sn, dt=dt, **kwargs)
-        return data
-    
-    def get_data_for_year(self, dt: date, **kwargs) -> EPMMonthYearData:
-        data: EPMMonthYearData = self.__parent__.get_epm_data_for_year(sn=self.sn, dt=dt, **kwargs)
-        return data
-
-    def _to_json(self):
-        return {key: value for key, value in self.__dict__.items() if not key.startswith("_")}
-        
-    def _from_json(self, json_data) -> SolisEPM:
         if json_data:
             for key, value in json_data.items():
                 if hasattr(self, key):
                     setattr(self, key, value)
         return self
+    
+    def _to_json(self) -> dict:
+        return {key: value for key, value in self.__dict__.items() if not key.startswith("_")}
+    
+    def get_inverters(self) -> SolisInverters:
+        if self.__parent__:
+            self.inverters = self.__parent__.get_inverter_list(stationId=self.id)
+            return self.inverters
 
-
+        
 class SolisStations():
     def __init__(self):
         self.stationStatusVo: StatusVo = StatusVo()
         self.stations: list[SolisStation] = []
     
     def _from_json(self, json_data) -> SolisStations:
-        for key, value in json_data.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
+        if json_data:
+            for key, value in json_data.items():
+                if hasattr(self, key):
+                    setattr(self, key, value)
         return self
     
     def _to_json(self) -> dict:
@@ -1050,12 +853,31 @@ class SolisInverter():
             self.charge_discharge_schedule = self.__parent__.get_charge_discharge_schedule(self.sn)
             return self.charge_discharge_schedule
     
-    def set_charge_discharge_schedules(self, charge_discharge_schedule: ChargeDischargeSchedule) -> SolisSetResult:
+    def set_cgarge_discharge_schedules(self, charge_discharge_schedule: ChargeDischargeSchedule) -> SolisSetResult:
         if self.__parent__:
             return self.__parent__.set_inverter_charge_discharge_schedule(self.id, self.sn, charge_discharge_schedule)
     
     def _to_json(self) -> dict:
         return {key: value for key, value in self.__dict__.items() if not key.startswith("_")}
+
+
+class SolisInverters():
+    def __init__(self):
+        self.inverterStatusVo: StatusVo = StatusVo()
+        self.inverters: list[SolisInverter]
+    
+    def _from_json(self, json_data):
+        if json_data:
+            for key, value in json_data.items():
+                if hasattr(self, key):
+                    setattr(self, key, value)
+        return self
+    
+    def _to_json(self) -> dict:
+        json_obj = {}
+        json_obj['inverterStatusVo'] = self.inverterStatusVo._to_json()
+        json_obj['inverters'] = [x._to_json() for x in self.inverters]
+        return json_obj
 
 
 class ScheduleDateTime():
@@ -1142,242 +964,58 @@ class SolisCloud():
                 error_message = f"{error_message}, {msg}"
         return error_message
     
-    def __get_start_end_times__(self, data) -> Optional[tuple[time, time]]:
-        ret_val = None
+    def __get_start_end_times__(self, data) -> tuple[time]:
         try:
             data_split = data.split("-")
             start_time = data_split[0]
             end_time = data_split[1]
-            ret_val = start_time, end_time
+            return (datetime.strptime(start_time, "%H:%M").time(), datetime.strptime(end_time, "%H:%M").time())
         except:
-            ret_val = None
-        return ret_val
-
-    def list_stations(self, pageNo: int = 1, pageSize: int = 20, NmiCode: str = None, **kwargs) -> tuple[StatusVo, list[SolisStation]]:
-        has_more = True
-        stations: list[SolisStation] = []
-        status_vo: StatusVo = StatusVo()
-        while has_more:
-            body = {
-                "pageNo": pageNo, 
-                "pageSize": pageSize
-            }
-            if NmiCode:
-                body.update({
-                    "NmiCode": NmiCode
-                })
-            for k, v in kwargs:
-                body.update({
-                    k: v
-                })
-            uri = "/v1/api/userStationList"
-            url = f"{self.base_url}{uri}"
-            self.__generate_authorization__("POST", json.dumps(body, separators=(',',':')), "application/json", uri)
-            res = self.client.post(url, json=body, headers=self.headers)
-            if res.status_code == 200:
-                res_json = res.json()
-                data = res_json.get('data', {})
-                station_status_vo = data.get('stationStatusVo', {})
-                page = data.get('page', {})
-                total_pages = page.get('pages', 1)
-                if total_pages > pageNo:
-                    has_more = True
-                else:
-                    has_more = False
-                station_list = page.get('records')
-                status_vo._from_json(station_status_vo)
-                [stations.append(SolisStation(self)._from_json(x)) for x in station_list]
-                if has_more:
-                    pageNo += 1
-            else:
-                has_more = False
-                raise SolisConnectException(f"There was an error - {res.status_code} - {res.reason}")
-        return status_vo, stations
+            return (time(0,0), time(0,0))
     
-    def get_station_detail(self, id: int, nmiCode: str = None, **kwargs) -> SolisStation:
+    def get_station_list(self, pageNo: int = 1, pageSize: int = 20, NmiCode: str = None, **kwargs) -> SolisStations:
+        args = [{k: v} for k, v in locals().items() if k != "self"]
         body = {
-            "id": id
+            "pageNo": pageNo, 
+            "pageSize": pageSize
         }
-        if nmiCode:
-            body.update({
-                "nmiCode": nmiCode
-            })
-        for k,v in kwargs:
-            body.update({
-                k: v
-            })
+        [body.update(x) for x in args]
+        [body.update({k: v}) for k, v in kwargs.items()]
+        return_value = {}
+        uri = "/v1/api/userStationList"
+        url = f"{self.base_url}{uri}"
+        self.__generate_authorization__("POST", json.dumps(body, separators=(',',':')), "application/json", uri)
+        res = self.client.post(url, json=body, headers=self.headers)
+        if res.status_code == 200:
+            res_json = res.json()
+            station_status_vo = res_json.get('data', {}).get('stationStatusVo')
+            stations = res_json.get('data', {}).get('page', {}).get('records')
+            station_data = SolisStations()
+            station_data.stationStatusVo._from_json(station_status_vo)
+            station_data.stations = [SolisStation(self)._from_json(x) for x in stations]
+            return station_data
+        else:
+            raise SolisConnectException(f"There was an error - {res.status_code} - {res.reason}")
+    
+    def get_station_detail(self, id: int, nmi_code: str = None) -> SolisStation:
+        args = [{k: v} for k, v in locals().items() if k != "self" and v != None]
+        body = {}
+        [body.update(x) for x in args]
+        return_value = {}
         uri = "/v1/api/stationDetail"
         url = f"{self.base_url}{uri}"
         self.__generate_authorization__("POST", json.dumps(body, separators=(',',':')), "application/json", uri)
         res = self.client.post(url, json=body, headers=self.headers)
         if res.status_code == 200:
             res_json = res.json()
-            success = res_json.get('success', False)
-            msg = res_json.get('msg', '')
-            if not success:
-                raise SolisConnectException(f"There was an error - {msg} - {res.status_code} - {res.reason}")
             data = res_json.get('data', {}) or {}
             station = SolisStation()._from_json(data)
             return station
             
         else:
             raise SolisConnectException(f"There was an error - {res.status_code} - {res.reason}")
-
-    def list_epms(self, pageNo: int = 1, pageSize: int = 20, stationId: str = "", NmiCode: str = None, **kwargs) -> tuple[StatusVo, list[SolisEPM]]:
-        has_more = True
-        epms: list[SolisEPM] = []
-        status_vo: StatusVo = StatusVo()
-        while has_more:
-            body = {
-                "pageNo": pageNo, 
-                "pageSize": pageSize
-            }
-            if NmiCode:
-                body.update({
-                    "NmiCode": NmiCode
-                })
-            if stationId:
-                body.update({
-                    "stationId": stationId
-                })
-            for k, v in kwargs:
-                body.update({
-                    k: v
-                })
-            uri = "/v1/api/epmList"
-            url = f"{self.base_url}{uri}"
-            self.__generate_authorization__("POST", json.dumps(body, separators=(',',':')), "application/json", uri)
-            res = self.client.post(url, json=body, headers=self.headers)
-            if res.status_code == 200:
-                res_json = res.json()
-                success = res_json.get('success', False)
-                msg = res_json.get('msg', '')
-                if not success:
-                    raise SolisConnectException(f"There was an error - {msg} - {res.status_code} - {res.reason}")
-                data = res_json.get('data', {})
-                station_status_vo = data.get('epmStatusVo', {})
-                page = data.get('page', {})
-                total_pages = page.get('pages', 1)
-                if total_pages > pageNo:
-                    has_more = True
-                else:
-                    has_more = False
-                epm_list = page.get('records')
-                status_vo._from_json(station_status_vo)
-                [epms.append(SolisEPM(self)._from_json(x)) for x in epm_list]
-                if has_more:
-                    pageNo += 1
-            else:
-                has_more = False
-                raise SolisConnectException(f"There was an error - {res.status_code} - {res.reason}")
-        return status_vo, epms
-
-    def get_epm_detail(self, sn: int, **kwargs) -> SolisEPM:
-        body = {
-            "sn": sn
-        }
-        for k,v in kwargs:
-            body.update({
-                k: v
-            })
-        uri = "/v1/api/epmDetail"
-        url = f"{self.base_url}{uri}"
-        self.__generate_authorization__("POST", json.dumps(body, separators=(',',':')), "application/json", uri)
-        res = self.client.post(url, json=body, headers=self.headers)
-        if res.status_code == 200:
-            res_json = res.json()
-            success = res_json.get('success', False)
-            msg = res_json.get('msg', '')
-            if not success:
-                raise SolisConnectException(f"There was an error - {msg} - {res.status_code} - {res.reason}")
-            data = res_json.get('data', {}) or {}
-            epm = SolisEPM(self)._from_json(data)
-            return epm
-            
-        else:
-            raise SolisConnectException(f"There was an error - {res.status_code} - {res.reason}")
-
-    def get_epm_data_for_day(self, sn: str, dt: date, timeZone: int, searchinfo: list[EPMFields] = [], **kwargs) -> EPMDayData:
-        body = {
-            "sn": sn,
-            "time": dt.strftime("%Y-%m-%d"),
-            "timeZone": timeZone
-        }
-        if searchinfo:
-            body.update({
-                "searchinfo": ",".join(searchinfo)
-            })
-        for k, v in kwargs.items():
-            body.update({
-                k: v
-            })
-        uri = "/v1/api/epm/day"
-        url = f"{self.base_url}{uri}"
-        self.__generate_authorization__("POST", json.dumps(body, separators=(',',':')), "application/json", uri)
-        res = self.client.post(url, json=body, headers=self.headers)
-        if res.status_code == 200:
-            res_json = res.json()
-            success = res_json.get('success', False)
-            msg = res_json.get('msg', '')
-            if not success:
-                raise SolisConnectException(f"There was an error - {msg} - {res.status_code} - {res.reason}")
-            data = res_json.get('data', {}) or {}
-            day_data = EPMDayData()._from_json_(data)
-            return day_data
-        else:
-            raise SolisConnectException(f"There was an error - {res.status_code} - {res.reason}")
     
-    def get_epm_data_for_month(self, sn: str, dt: date, **kwargs) -> EPMMonthYearData:
-        body = {
-            "sn": sn,
-            "month": dt.strftime("%Y-%m")
-        }
-        for k, v in kwargs.items():
-            body.update({
-                k: v
-            })
-        uri = "/v1/api/epm/month"
-        url = f"{self.base_url}{uri}"
-        self.__generate_authorization__("POST", json.dumps(body, separators=(',',':')), "application/json", uri)
-        res = self.client.post(url, json=body, headers=self.headers)
-        if res.status_code == 200:
-            res_json = res.json()
-            success = res_json.get('success', False)
-            msg = res_json.get('msg', '')
-            if not success:
-                raise SolisConnectException(f"There was an error - {msg} - {res.status_code} - {res.reason}")
-            data = res_json.get('data', {}) or {}
-            month_data = EPMMonthYearData()._from_json_(data)
-            return month_data
-        else:
-            raise SolisConnectException(f"There was an error - {res.status_code} - {res.reason}")
-    
-    def get_epm_data_for_year(self, sn: str, dt: date, **kwargs) -> EPMMonthYearData:
-        body = {
-            "sn": sn,
-            "year": dt.strftime("%Y")
-        }
-        for k, v in kwargs.items():
-            body.update({
-                k: v
-            })
-        uri = "/v1/api/epm/year"
-        url = f"{self.base_url}{uri}"
-        self.__generate_authorization__("POST", json.dumps(body, separators=(',',':')), "application/json", uri)
-        res = self.client.post(url, json=body, headers=self.headers)
-        if res.status_code == 200:
-            res_json = res.json()
-            success = res_json.get('success', False)
-            msg = res_json.get('msg', '')
-            if not success:
-                raise SolisConnectException(f"There was an error - {msg} - {res.status_code} - {res.reason}")
-            data = res_json.get('data', {}) or {}
-            year_data = EPMMonthYearData()._from_json_(data)
-            return year_data
-        else:
-            raise SolisConnectException(f"There was an error - {res.status_code} - {res.reason}")
-
-    def list_collectors(self, page_number: int = 1, page_size: int = 20, nmi_code: str = None, station_id: int = None):
+    def get_collector_list(self, page_number: int = 1, page_size: int = 20, nmi_code: str = None, station_id: int = None):
         args = [{k: v} for k, v in locals().items() if k != "self"]
         body = {}
         [body.update(x) for x in args]
@@ -1390,82 +1028,40 @@ class SolisCloud():
             return_value = res.json()
         return return_value
     
-    def list_inverters(self, pageNo: int = 1, pageSize: int = 100, stationId: str = None, nmiCode: str = None, **kwargs) -> tuple[StatusVo, list[SolisInverter]]:
-        isvo: StatusVo = StatusVo()
-        solis_inverters: list[SolisInverter] = []
-        has_more = True
-        while has_more:
-            body = {
-                "pageNo": pageNo,
-                "pageSize": pageSize
-            }
-            if stationId:
-                body.update({
-                    "stationId": stationId
-                })
-            if nmiCode:
-                body.update({
-                    "nmiCode": nmiCode
-                })
-            for k, v in kwargs:
-                body.update({
-                    k: v
-                })
-            uri = "/v1/api/inverterList"
-            url = f"{self.base_url}{uri}"
-            self.__generate_authorization__("POST", json.dumps(body, separators=(',',':')), "application/json", uri)
-            
-            res = self.client.post(url, json=body, headers=self.headers)
-            if res.status_code == 200:
-                res_json = res.json()
-                success = res_json.get('success', False)
-                msg = res_json.get('msg', '')
-                if not success:
-                    has_more = False
-                    raise SolisConnectException(f"There was an error - {msg}")
-                data = res_json.get('data', {}) or {}
-                inverter_status_vo = data.get('inverterStatusVo', {}) or {}
-                isvo: StatusVo = StatusVo()._from_json(inverter_status_vo)
-                page = data.get('page', {})
-                total_pages = page.get('pages', 1)
-                if total_pages > pageNo:
-                    has_more = True
-                else:
-                    has_more = False
-                records = page.get('records', []) or []
-                [solis_inverters.append(SolisInverter(self)._from_json(x)) for x in records]
-                if has_more:
-                    pageNo += 1
-                    body.update({
-                        "pageNo": pageNo
-                    })
-            else:
-                has_more = False
-                raise SolisConnectException(f"There was an error - {res.status_code} - {res.reason}")
-        return isvo, solis_inverters
+    def get_inverter_list(self, pageNo: int = 1, pageSize: int = 100, stationId: str = None, nmiCode: str = None) -> SolisInverters:
+        args = [{k: v} for k, v in locals().items() if k != "self" and v != None]
+        body = {}
+        [body.update(x) for x in args]
+        return_value = []
+        uri = "/v1/api/inverterList"
+        url = f"{self.base_url}{uri}"
+        self.__generate_authorization__("POST", json.dumps(body, separators=(',',':')), "application/json", uri)
+        res = self.client.post(url, json=body, headers=self.headers)
+        if res.status_code == 200:
+            res_json = res.json()
+            data = res_json.get('data', {}) or {}
+            inverter_status_vo = data.get('inverterStatusVo', {}) or {}
+            page = data.get('page', {})
+            records = page.get('records', []) or []
+            solis_inverters: SolisInverters = SolisInverters()
+            solis_inverters.inverterStatusVo._from_json(inverter_status_vo)
+            solis_inverters.inverters = [SolisInverter(self)._from_json(x) for x in records]
+            return solis_inverters
+        else:
+            raise SolisConnectException(f"There was an error - {res.status_code} - {res.reason}")
 
-    def get_inverter_details(self, id: str, sn: str, **kwargs) -> SolisInverter:
-        body = {
-            "id": id,
-            "sn": sn
-        }
-        for k, v in kwargs:
-            body.update({
-                k: v
-            })
+    def get_inverter_details(self, id: str, sn: str) -> SolisInverter:
+        args = [{k: v} for k, v in locals().items() if k != "self" and v != None]
+        body = {}
+        [body.update(x) for x in args]
         uri = "/v1/api/inverterDetail"
         url = f"{self.base_url}{uri}"
         self.__generate_authorization__("POST", json.dumps(body, separators=(',',':')), "application/json", uri)
         res = self.client.post(url, json=body, headers=self.headers)
         if res.status_code == 200:
             res_json = res.json()
-            success = res_json.get('success', False)
-            msg = res_json.get('msg', '')
-            if not success:
-                raise SolisConnectException(f"There was an error - {msg} - {res.status_code} - {res.reason}")
             data = res_json.get('data', {})
-            inverter = SolisInverter(self)._from_json(data)
-            inverter.charge_discharge_schedule = inverter.get_charge_discharge_schedules()
+            inverter = SolisInverter()._from_json(data)
             return inverter
         else:
             raise SolisConnectException(f"There was an error - {res.status_code} - {res.reason}")
@@ -1502,6 +1098,7 @@ class SolisCloud():
             "inverterSn": sn,
             "cid": 103,
         }
+        return_value = {}
         uri = "/v2/api/atRead"
         url = f"{self.base_url}{uri}"
         self.__generate_authorization__("POST", json.dumps(body, separators=(',',':')), "application/json", uri)
