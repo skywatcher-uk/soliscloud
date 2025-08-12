@@ -7,6 +7,8 @@ import hashlib
 import pytz
 import hmac
 import json
+from requests.exceptions import RequestException
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 
 EPMFields = Literal["u_ac1","u_ac2","u_ac3","i_ac1","i_ac2","i_ac3","p_ac1","p_ac2","p_ac3","power_factor","fac_meter","p_load","e_total_inverter","e_total_load","e_total_buy","e_total_sell"]
@@ -1106,6 +1108,32 @@ class SolisSetResult():
 
 
 class SolisCloud():
+    class RequestsSession(Session):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+
+        @retry(stop=stop_after_attempt(5), wait=wait_fixed(2))
+        def request(self, method, url, **kwargs):
+            response = super().request(method, url, **kwargs)
+            
+            if response.status_code == 429:
+                print(f"Rate limit hit: {url} with status 429. Retrying...")
+                raise RequestException("Rate limit exceeded")
+            
+            return response
+
+        def get(self, url, **kwargs):
+            return self.request('GET', url, **kwargs)
+
+        def post(self, url, **kwargs):
+            return self.request('POST', url, **kwargs)
+
+        def put(self, url, **kwargs):
+            return self.request('PUT', url, **kwargs)
+
+        def delete(self, url, **kwargs):
+            return self.request('DELETE', url, **kwargs)
+
     def __init__(self, key_id: str, key_secret: str, base_url: str = "https://www.soliscloud.com:13333"):
         """_summary_
         This class provides connectivity to the SolisCloud API.
@@ -1118,7 +1146,7 @@ class SolisCloud():
         self.key_id: str = key_id
         self.key_secret: str = key_secret
         self.base_url: str = base_url
-        self.client = Session()
+        self.client = self.RequestsSession()
         self.headers = {}
     
     def __generate_authorization__(self, verb: str = "POST", body: str = "", content_type: str = "application/json", uri: str = "/"):
