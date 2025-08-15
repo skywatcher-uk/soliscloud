@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="soliscloud",
-    version="1.0.12",
+    version="1.1.2",
     author="Skywatcher",
     author_email="integrations@skywatcher.uk",
     description="A small package to work with Solis Cloud API",

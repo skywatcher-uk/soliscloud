@@ -295,35 +295,204 @@ class EPMMonthYearData():
 
 
 class SolisEPM():
-    def __init__(self, parent: SolisCloud):
-        self.__parent__ = parent
-        self.id: str = ""
-        self.sn: str = ""
-        self.collectorId: str = ""
-        self.collectorSn: str = ""
-        self.simFlowState: int = 0
-        self.stationId: int = 0
-        self.userId: str = ""
-        self.stationName: str = ""
-        self.rfSn: str = ""
-        self.tag: str = ""
-        self.state: int = 0
-        self.stateExceptionFlag: int = 0
-        self.dataTimestamp: str = ""
-        self.dataTimestampStr: str = ""
-        self.failSafe: float = 0
-        self.pEpmTotal: float = 0
-        self.pEpmTotalStr: str = ""
-        self.eTotalBuy: float = 0
-        self.eTotalBuyStr: str = ""
-        self.eTotalSell: float = 0
-        self.eTotalSellStr: str = ""
-        self.pLimit: float = 0.0
-        self.timeZone: float = 0.0
-        self.timeZoneStr: str = ""
-        self.timeZoneName: str = ""
-        self.epmMeterSite: int = 0
-        self.idStr: str = ""
+    collectorId: str
+    collectorSn: str
+    ctRatio: float
+    currentState: str
+    dataTimestamp: str
+    daylight: int
+    eToaalInverter: str
+    eToaalInverterOrigin: float
+    eToaalInverterStr: float
+    eTodayBuy: 0
+    eTodayBuyOrigin: 0
+    eTodayBuyStr: str
+    eTodaySell: str
+    eTodaySellOrigin: str
+    eTodaySellStr: str
+    eTotalBuy: str
+    eTotalBuyOrigin: str
+    eTotalBuyStr: str
+    eTotalLoad: str
+    eTotalLoadOrigin: str
+    eTotalLoadStr: str
+    eTotalSell: str
+    eTotalSellOrigin: str
+    eTotalSellStr: str
+    empSoftwareVersion: str
+    epmDataTime: str
+    epmModel: str
+    epmMonthLoadEnergy: str
+    epmMonthLoadEnergyOrigin: str
+    epmMonthLoadEnergyStr: str
+    epmTodayLoadEnergy: str
+    epmTodayLoadEnergyOrigin: str
+    epmTodayLoadEnergyStr: str
+    epmTotalLoadEnergy: str
+    epmTotalLoadEnergyOrigin: str
+    epmTotalLoadEnergyStr: str
+    epmType: str
+    facMeter: str
+    failSafe: str
+    g100v2State: str
+    gridSwitch1: str
+    iAc1: str
+    iAc1Str: str
+    iAc2: str
+    iAc2Str: str
+    iAc3: str
+    iAc3Str: str
+    id: str
+    inverterModel: str
+    inverterNum: str
+    isRealtime: str
+    monthBuy: str
+    monthBuyOrigin: str
+    monthBuyStr: str
+    monthSell: str
+    monthSellOrigin: str
+    monthSellStr: str
+    pAc1: str
+    pAc1Str: str
+    pAc2: str
+    pAc2Str: str
+    pAc3: str
+    pAc3Str: str
+    pEpmTotal: str
+    pEpmTotalOrigin: str
+    pEpmTotalPec: str
+    pEpmTotalStr: str
+    pInverterTotal: str
+    pInverterTotalOrigin: str
+    pInverterTotalStr: str
+    pLimit: str
+    pLoad: str
+    pLoadOrigin: str
+    pLoadStr: str
+    pSet: str
+    pSetOrigin: str
+    pSetStr: str
+    powerFactor: str
+    rs485ComAddr: str
+    sn: str
+    sno: str
+    state: str
+    stateExceptionFlag: str
+    stationId: str
+    stationName: str
+    stationType: str
+    stationTypeNew: str
+    synchronizationType: str
+    tag: str
+    timeZone: str
+    timeZoneStr: str
+    uAc1: str
+    uAc1Str: str
+    uAc2: str
+    uAc2Str: str
+    uAc3: str
+    uAc3Str: str
+    userId: str
+    def __init__(self, __parent__: SolisCloud):
+        self.__parent__: SolisCloud = __parent__
+        self.collectorId = ""
+        self.collectorSn = ""
+        self.ctRatio = 0.0
+        self.currentState = ""
+        self.dataTimestamp = ""
+        self.daylight = 0
+        self.eToaalInverter = 0.0
+        self.eToaalInverterOrigin = 0.0
+        self.eToaalInverterStr = ""
+        self.eTodayBuy = 0
+        self.eTodayBuyOrigin = 0
+        self.eTodayBuyStr = ""
+        self.eTodaySell = ""
+        self.eTodaySellOrigin = ""
+        self.eTodaySellStr = ""
+        self.eTotalBuy = ""
+        self.eTotalBuyOrigin = ""
+        self.eTotalBuyStr = ""
+        self.eTotalLoad = ""
+        self.eTotalLoadOrigin = ""
+        self.eTotalLoadStr = ""
+        self.eTotalSell = ""
+        self.eTotalSellOrigin = ""
+        self.eTotalSellStr = ""
+        self.empSoftwareVersion = ""
+        self.epmDataTime = ""
+        self.epmModel = ""
+        self.epmMonthLoadEnergy = ""
+        self.epmMonthLoadEnergyOrigin = ""
+        self.epmMonthLoadEnergyStr = ""
+        self.epmTodayLoadEnergy = ""
+        self.epmTodayLoadEnergyOrigin = ""
+        self.epmTodayLoadEnergyStr = ""
+        self.epmTotalLoadEnergy = ""
+        self.epmTotalLoadEnergyOrigin = ""
+        self.epmTotalLoadEnergyStr = ""
+        self.epmType = ""
+        self.facMeter = ""
+        self.failSafe = ""
+        self.g100v2State = ""
+        self.gridSwitch1 = ""
+        self.iAc1 = ""
+        self.iAc1Str = ""
+        self.iAc2 = ""
+        self.iAc2Str = ""
+        self.iAc3 = ""
+        self.iAc3Str = ""
+        self.id = ""
+        self.inverterModel = ""
+        self.inverterNum = ""
+        self.isRealtime = ""
+        self.monthBuy = ""
+        self.monthBuyOrigin = ""
+        self.monthBuyStr = ""
+        self.monthSell = ""
+        self.monthSellOrigin = ""
+        self.monthSellStr = ""
+        self.pAc1 = ""
+        self.pAc1Str = ""
+        self.pAc2 = ""
+        self.pAc2Str = ""
+        self.pAc3 = ""
+        self.pAc3Str = ""
+        self.pEpmTotal = ""
+        self.pEpmTotalOrigin = ""
+        self.pEpmTotalPec = ""
+        self.pEpmTotalStr = ""
+        self.pInverterTotal = ""
+        self.pInverterTotalOrigin = ""
+        self.pInverterTotalStr = ""
+        self.pLimit = ""
+        self.pLoad = ""
+        self.pLoadOrigin = ""
+        self.pLoadStr = ""
+        self.pSet = ""
+        self.pSetOrigin = ""
+        self.pSetStr = ""
+        self.powerFactor = ""
+        self.rs485ComAddr = ""
+        self.sn = ""
+        self.sno = ""
+        self.state = ""
+        self.stateExceptionFlag = ""
+        self.stationId = ""
+        self.stationName = ""
+        self.stationType = ""
+        self.stationTypeNew = ""
+        self.synchronizationType = ""
+        self.tag = ""
+        self.timeZone = ""
+        self.timeZoneStr = ""
+        self.uAc1 = ""
+        self.uAc1Str = ""
+        self.uAc2 = ""
+        self.uAc2Str = ""
+        self.uAc3 = ""
+        self.uAc3Str = ""
+        self.userId = ""
     
     def get_data_for_day(self, dt: date, timeZone: int, searchinfo: list[EPMFields] = [], **kwargs) -> EPMDayData:
         data: EPMDayData = self.__parent__.get_epm_data_for_day(sn=self.sn, dt=dt, timeZone=timeZone, searchinfo=searchinfo, **kwargs)
