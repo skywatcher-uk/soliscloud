@@ -178,7 +178,7 @@ class EPMDataDayItem():
     
     def _to_json_(self) -> dict:
         json_obj = {}
-        for k, v in self.__dict__.items():
+        for k, v in dict(sorted(self.__dict__.items())):
             if not k.startswith("_"):
                 json_obj[k] = v
         return json_obj
@@ -1495,6 +1495,7 @@ class SolisCloud():
             raise SolisConnectException(f"There was an error - {res.status_code} - {res.reason}")
 
     def get_epm_data_for_day(self, sn: str, dt: date, timeZone: int, searchinfo: list[EPMFields] = [], **kwargs) -> EPMDayData:
+        default_fields = ["u_ac1","u_ac2","u_ac3","i_ac1","i_ac2","i_ac3","p_ac1","p_ac2","p_ac3","power_factor","fac_meter","p_load","e_total_inverter","e_total_load","e_total_buy","e_total_sell"]
         body = {
             "sn": sn,
             "time": dt.strftime("%Y-%m-%d"),
@@ -1503,6 +1504,10 @@ class SolisCloud():
         if searchinfo:
             body.update({
                 "searchinfo": ",".join(searchinfo)
+            })
+        else:
+            body.update({
+                "searchinfo": ",".join(default_fields)
             })
         for k, v in kwargs.items():
             body.update({
