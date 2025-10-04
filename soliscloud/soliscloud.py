@@ -1343,8 +1343,10 @@ class SolisCloud():
         ret_val = None
         try:
             data_split = data.split("-")
-            start_time = data_split[0]
-            end_time = data_split[1]
+            start = data_split[0].split(":")
+            start_time = time(int(start[0]), int(start[1]))
+            end = data_split[1].split(":")
+            end_time = time(int(end[0]), int(end[1]))
             ret_val = start_time, end_time
         except:
             ret_val = None
