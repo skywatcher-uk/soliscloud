@@ -30,7 +30,7 @@ s = SolisCloud(key_id="KEY_ID", key_secret="KEY_SECRET")
 status, stations = s.list_stations()
 
 first_station = stations[0]
-first_station_inverters = first_station.get_inverters()
+first_station_inverters = first_station.list_inverters()
 first_station_first_inverter = first_station_inverters[0]
 first_station_first_inverter_schedules first_station_first_inverter.get_charge_discharge_schedules()
 
