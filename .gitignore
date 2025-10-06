@@ -3,3 +3,6 @@ dist/
 soliscloud.egg-info/
 *.sh
 /env
+test*.py
+*.json
+/soliscloud/__pycache__/
