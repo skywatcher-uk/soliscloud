@@ -1343,8 +1343,8 @@ class SolisCloud():
         ret_val = None
         try:
             data_split = data.split("-")
-            start_time = data_split[0]
-            end_time = data_split[1]
+            start_time = datetime.strptime(data_split[0], "%H:%M").time()
+            end_time = datetime.strptime(data_split[1], "%H:%M").time()
             ret_val = start_time, end_time
         except:
             ret_val = None
@@ -1711,6 +1711,10 @@ class SolisCloud():
         if res.status_code == 200:
             res_json = res.json()
             data = res_json.get('data', {}) or {}
+            if "code" in data:
+                msg = data.get('msg', "") or ""
+                yuanzhi = msg = data.get('yuanzhi', "") or ""
+                raise NotImplementedError(f"{msg}: {yuanzhi}")
             msg = data.get('msg', "") or ""
             if msg:
                 msg_split: list = msg.split(",")
