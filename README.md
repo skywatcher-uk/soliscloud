@@ -46,7 +46,7 @@ Representation of each schedule consists of a charge start / end and current.
 
 Just in case the schedule needs to be set on an individual inverter, the method ```set_charge_discharge_schedules``` is available on the inverter.
 
-If you want to set the schdule at the SolisCloud level, this can be carried
+If you want to set the schedule at the SolisCloud level, this can be carried
 out using the method ```set_inverter_charge_discharge_schedule```.
 
 Managing schedules can be done using individual schedules or using the

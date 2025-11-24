@@ -1281,7 +1281,7 @@ class SolisCloud():
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
 
-        @retry(stop=stop_after_attempt(5), wait=wait_fixed(2))
+        @retry(stop=stop_after_attempt(5), wait=wait_exponential)
         def request(self, method, url, **kwargs):
             response = super().request(method, url, **kwargs)
             
