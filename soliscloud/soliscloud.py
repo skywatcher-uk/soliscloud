@@ -8,7 +8,7 @@ import pytz
 import hmac
 import json
 from requests.exceptions import RequestException
-from tenacity import retry, stop_after_attempt, wait_fixed
+from tenacity import retry, stop_after_attempt, wait_fixed, wait_exponential
 
 
 EPMFields = Literal["u_ac1","u_ac2","u_ac3","i_ac1","i_ac2","i_ac3","p_ac1","p_ac2","p_ac3","power_factor","fac_meter","p_load","e_total_inverter","e_total_load","e_total_buy","e_total_sell"]
@@ -1281,7 +1281,7 @@ class SolisCloud():
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
 
-        @retry(stop=stop_after_attempt(5), wait=wait_exponential)
+        @retry(stop=stop_after_attempt(5), wait=wait_exponential(max=60))
         def request(self, method, url, **kwargs):
             response = super().request(method, url, **kwargs)
             
